@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: openproject
+  namespace: open-project
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: openproject
+      labels:
+        name: openproject
+    spec:
+      containers:
+        - image: openproject/community:7
+          name: openproject
+          env:
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: openproject-secrets
+                  key: secretKey
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: openproject-secrets
+                  key: dbHost
+            - name: CACHE_MEMCACHE_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: openproject-secrets
+                  key: memcachedHost
+            - name: CACHE_NAMESPACE
+              valueFrom:
+                secretKeyRef:
+                  name: openproject-secrets
+                  key: memcachedNamespace
+          ports:
+            - name: openproject
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            # This name must match the volumes.name below.
+            - name: op-data-disk
+              mountPath: /var/db/openproject
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 600
+            timeoutSeconds: 1
+          resources:
+              limits:
+                cpu: 500m
+                memory: 1Gi
+              requests:
+                cpu: 200m
+                memory: 500m
+      volumes:
+        - name: op-data-disk
+          persistentVolumeClaim:
+            claimName: openproject-claim

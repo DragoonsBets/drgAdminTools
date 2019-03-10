@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: openproject-ingress
+  namespace: open-project
+  labels:
+    name: openproject
+  annotations:
+    ingress.bluemix.net/redirect-to-https: 'true'
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+    nginx.ingress.kubernetes.io/from-to-www-redirect: 'true'
+spec:
+  tls:
+  - hosts:
+    - openproject.viserion.dragoons.gg
+    secretName: tls-openproject
+  rules:
+  - host: openproject.viserion.dragoons.gg
+    http:
+      paths:
+      - path: "/"
+        backend:
+          serviceName: openproject-service
+          servicePort: 32276

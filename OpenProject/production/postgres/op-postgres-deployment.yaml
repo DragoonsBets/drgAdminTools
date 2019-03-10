@@ -1,0 +1,58 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: openproject-postgres
+  namespace: open-project
+  labels:
+    name: openproject-postgres
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: openproject-postgres
+      labels:
+        name: openproject-postgres
+    spec:
+      containers:
+        - image: postgres:latest
+          name: op-postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openproject-secrets
+                  key: dbPassword
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: openproject-secrets
+                  key: dbUser
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: openproject-secrets
+                  key: dbName
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+              name: op-pg-port
+          volumeMounts:
+            # This name must match the volumes.name below.
+            - name: op-postgres-data
+              mountPath: /var/lib/postgresql/
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 300
+            timeoutSeconds: 5
+          resources:
+              limits:
+                cpu: 500m
+                memory: 1Gi
+              requests:
+                cpu: 200m
+                memory: 500m
+      volumes:
+        - name: op-postgres-data
+          persistentVolumeClaim:
+            claimName: openproject-pg-claim
