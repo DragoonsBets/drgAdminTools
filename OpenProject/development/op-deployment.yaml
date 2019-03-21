@@ -12,7 +12,7 @@ spec:
         name: openproject
     spec:
       containers:
-        - image: openproject/community:7
+        - image: openproject/community:latest
           name: openproject
           env:
             - name: SECRET_KEY_BASE
